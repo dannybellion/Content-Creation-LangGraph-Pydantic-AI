@@ -7,7 +7,7 @@ agent = BaseAgent(
     name="content_editor",
     output_type=ContentPlan,
     system_prompt=PromptManager.get_prompt("content_editor_system"),
-    model_name="openai:o4-mini",
+    model_name="openai:gpt-4o-mini",
     temperature=0.1,
     tools=[style_guidelines],
 )

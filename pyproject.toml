@@ -21,6 +21,8 @@ dependencies = [
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+# Exclude trio backend tests by default since trio is not installed
+addopts = "-k 'not trio'"
 
 [tool.ruff]
 line-length = 79

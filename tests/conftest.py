@@ -174,7 +174,6 @@ def sample_workflow_state():
     from src.models import (
         WorkflowState,
         ContentBrief,
-        ContentPlan,
         ConsolidatedResearch,
     )
 
@@ -189,21 +188,10 @@ def sample_workflow_state():
             key_points=["efficiency", "automation", "cost savings"],
             call_to_action="Try our AI tools today",
         ),
-        content_plan=ContentPlan(
-            title="10 AI Tools to Boost Your Productivity",
-            hook="Transform your productivity with these game-changing AI tools",
-            style="informative and actionable",
-            key_ideas=[
-                "AI tools save time and increase efficiency",
-                "Implementation is easier than you think",
-                "ROI is measurable and significant",
-            ],
-            content_differentiation="Focus on practical implementation rather than technical features",
-            research_integration="Use real user testimonials and case studies throughout",
-            audience_alignment="Written for busy professionals who want quick wins",
-        ),
         consolidated_research=ConsolidatedResearch(
             web_research="AI tools market growing 25% annually",
+            youtube_research="Video content on AI productivity",
+            general_background="General background on AI tools",
             key_insights=[
                 "AI adoption increasing rapidly",
                 "Productivity gains measurable",
@@ -262,6 +250,33 @@ def sample_human_feedback():
         priority="high",
         preserve_elements=["main structure", "key statistics"],
     )
+
+
+@pytest.fixture
+def mock_web_search_researcher():
+    """Mock web_search for researcher agent."""
+    with patch("src.agents.researcher.web_search") as mock:
+
+        async def mock_search(ctx, query: str) -> str:
+            return """
+            Research results for: AI productivity tools
+            
+            Key findings:
+            1. Market Growth: AI productivity tools market growing at 25% CAGR
+            2. User Adoption: 78% of knowledge workers use at least one AI tool
+            3. ROI Statistics: Average 40% productivity increase reported
+            4. Popular Categories: Writing assistance, data analysis, task automation
+            5. Implementation Challenges: Training needs, integration complexity
+            
+            Expert Insights:
+            - "AI tools are becoming essential for competitive advantage" - Industry Report 2024
+            - Companies report 2.5x faster task completion with AI assistance
+            
+            Trending Topics: ChatGPT integration, AI workflow automation, productivity measurement
+            """
+
+        mock.side_effect = mock_search
+        yield mock
 
 
 @pytest.fixture

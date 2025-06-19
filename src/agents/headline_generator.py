@@ -6,7 +6,7 @@ agent = BaseAgent(
     name="headline_generator",
     output_type=HeadlineOptions,
     system_prompt=PromptManager.get_prompt("headline_generator_system"),
-    model_name="gpt-4.1",
+    model_name="openai:gpt-4o",
     temperature=0.2,
 )
 

@@ -14,7 +14,7 @@ agent = BaseAgent(
     name="content_writer",
     output_type=DraftContent,
     system_prompt=PromptManager.get_prompt("content_writer_system"),
-    model_name="anthropic:claude-4-sonnet-20250514",
+    model_name="openai:gpt-4o-mini",
     temperature=0.1,
     tools=[analyze_readability, check_keyword_density, web_search],
 )

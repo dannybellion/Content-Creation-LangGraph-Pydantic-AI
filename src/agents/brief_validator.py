@@ -6,7 +6,7 @@ agent = BaseAgent(
     name="brief_validator",
     output_type=BriefValidation,
     system_prompt=PromptManager.get_prompt("brief_validator"),
-    model_name="openai:gpt-4.1-mini",
+    model_name="openai:gpt-4o-mini",
     temperature=0.1,
 )
 

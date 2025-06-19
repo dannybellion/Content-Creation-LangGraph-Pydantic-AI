@@ -8,7 +8,7 @@ agent = BaseAgent(
     name="researcher",
     output_type=ConsolidatedResearch,
     system_prompt=PromptManager.get_prompt("researcher_system"),
-    model_name="gpt-4.1-mini",
+    model_name="openai:gpt-4o-mini",
     temperature=0.1,
     tools=[web_search],
 )
