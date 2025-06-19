@@ -3,13 +3,12 @@ Content creation workflow using LangGraph to orchestrate agents.
 """
 
 from typing import Dict, Any
-from langgraph.graph import StateGraph
+from langgraph.graph import StateGraph, END
 from langgraph.types import interrupt
 
 from src.models import WorkflowState, HumanFeedback, BriefValidation
 from src.agents.brief_parser import parse_brief
 from src.agents.brief_validator import validate_brief
-from src.agents.idea_generator import generate_content_ideas
 from src.agents.content_planner import create_content_plan
 from src.agents.researcher import conduct_research
 from src.agents.content_writer import write_content, revise_content
@@ -26,7 +25,7 @@ async def parse_brief_node(state: WorkflowState) -> Dict[str, Any]:
 
     brief = await parse_brief(state.original_input)
 
-    return {"content_brief": brief}
+    return {"content_brief": brief, "current_step": "validate_brief"}
 
 
 async def validate_brief_node(state: WorkflowState) -> Dict[str, Any]:
@@ -37,102 +36,52 @@ async def validate_brief_node(state: WorkflowState) -> Dict[str, Any]:
 
     # If validation is incomplete, ask for more details
     if not validation.is_complete and validation.clarifying_questions:
-        print(validation.clarifying_questions)
+        print("\n❓ Need more details to create great content:")
+        for i, q in enumerate(validation.clarifying_questions, 1):
+            print(f"  {i}. {q.question}")
 
         # Simple interrupt - just ask for more details
         user_response = interrupt(
             "Please provide more details about your content requirements."
         )
 
-        # Store user response and route to enhanced parsing
+        # Use the brief parser to enhance the brief with additional context
+        print("✅ Processing your additional details...")
+        enhanced_input = (
+            f"{state.original_input}\n\nAdditional details: {user_response}"
+        )
+        enhanced_brief = await parse_brief(enhanced_input)
+
         return {
-            "brief_validation": validation,
-            "user_response": user_response,
+            "content_brief": enhanced_brief,
+            "brief_validation": BriefValidation(
+                is_complete=True,
+                missing_fields=[],
+                clarifying_questions=[],
+                suggestions=[],
+            ),
+            "current_step": "plan_content",
         }
 
-    return {"brief_validation": validation}
+    return {"brief_validation": validation, "current_step": "check_validation"}
 
 
-async def enhance_brief_node(state: WorkflowState) -> Dict[str, Any]:
-    """Enhance brief with user response and re-parse."""
-    print("✅ Processing your additional details...")
+async def plan_content_node(state: WorkflowState) -> Dict[str, Any]:
+    """Create detailed content plan from validated brief."""
+    print("📋 Creating content plan...")
 
-    # Combine original input with user response
-    enhanced_input = (
-        f"{state.original_input}\n\nAdditional details: {state.user_response}"
-    )
-    enhanced_brief = await parse_brief(enhanced_input)
+    plan = await create_content_plan(state.content_brief)
 
-    return {
-        "content_brief": enhanced_brief,
-        "brief_validation": BriefValidation(
-            is_complete=True,
-            missing_fields=[],
-            clarifying_questions="",
-            suggestions=[],
-        ),
-    }
+    return {"content_plan": plan, "current_step": "conduct_research"}
 
 
 async def research_node(state: WorkflowState) -> Dict[str, Any]:
     """Conduct comprehensive research using web and YouTube sources."""
     print("🔬 Conducting research...")
 
-    research = await conduct_research(state)
+    research = await conduct_research(state.content_plan)
 
-    return {"consolidated_research": research}
-
-
-async def generate_ideas_node(state: WorkflowState) -> Dict[str, Any]:
-    """Generate content ideas from research and brief."""
-    print("💡 Generating content ideas...")
-
-    idea_options = await generate_content_ideas(state)
-
-    return {"content_idea_options": idea_options}
-
-
-async def select_idea_node(state: WorkflowState) -> Dict[str, Any]:
-    """Present ideas to human for selection."""
-    print("🎯 Presenting content ideas for selection...")
-
-    ideas = state.content_idea_options
-
-    # Display ideas to user
-    print("\n📝 CONTENT IDEAS:")
-    for i, idea in enumerate(ideas.ideas, 1):
-        print(f"\n{i}. {idea.title}")
-        print(f"   Hook: {idea.hook}")
-        print(f"   Angle: {idea.angle}")
-        print(f"   Description: {idea.description}")
-
-    # Get user selection
-    user_choice = interrupt(
-        "Please select which content idea you'd like to proceed with (1, 2, or 3):"
-    )
-
-    # Parse user choice and get selected idea
-    try:
-        choice_index = int(user_choice.strip()) - 1
-        if 0 <= choice_index < len(ideas.ideas):
-            selected_idea = ideas.ideas[choice_index]
-        else:
-            # Default to first idea if invalid choice
-            selected_idea = ideas.ideas[0]
-    except (ValueError, IndexError):
-        # Default to first idea if parsing fails
-        selected_idea = ideas.ideas[0]
-
-    return {"selected_content_idea": selected_idea}
-
-
-async def plan_content_node(state: WorkflowState) -> Dict[str, Any]:
-    """Create detailed content plan from selected idea."""
-    print("📋 Creating content plan...")
-
-    plan = await create_content_plan(state)
-
-    return {"content_plan": plan}
+    return {"consolidated_research": research, "current_step": "write_content"}
 
 
 async def write_content_node(state: WorkflowState) -> Dict[str, Any]:
@@ -145,16 +94,25 @@ async def write_content_node(state: WorkflowState) -> Dict[str, Any]:
         and state.human_feedback.feedback_type == "edit_content"
     ):
         # This is a revision
-        content = await revise_content(state)
+        content = await revise_content(
+            state.draft_content,
+            state.human_feedback,
+            state.consolidated_research,
+        )
         revision_count = state.revision_count + 1
     else:
         # This is initial writing
-        content = await write_content(state)
+        content = await write_content(
+            state.content_plan,
+            state.consolidated_research,
+            state.content_brief.brand_guidelines,
+        )
         revision_count = state.revision_count
 
     return {
         "draft_content": content,
         "revision_count": revision_count,
+        "current_step": "human_review",
     }
 
 
@@ -193,7 +151,7 @@ async def human_review_node(state: WorkflowState) -> Dict[str, Any]:
             preserve_elements=[],
         )
 
-    return {"human_feedback": feedback}
+    return {"human_feedback": feedback, "current_step": "process_feedback"}
 
 
 # ============================================================================
@@ -220,25 +178,20 @@ def process_human_feedback(state: WorkflowState) -> str:
         return "finalize"  # Default case
 
 
-def route_after_validation(state: WorkflowState) -> str:
-    """Route after validation based on whether user response exists."""
-    if state.user_response:
-        return "enhance_brief"
-    else:
-        return "conduct_research"
-
-
 # ============================================================================
 # Workflow Execution
 # ============================================================================
 
 
-async def run_content_pipeline(user_input: str) -> WorkflowState:
+async def run_content_pipeline(
+    user_input: str, clarifications: Dict[str, str] = None
+) -> WorkflowState:
     """
     Run the complete content creation pipeline.
 
     Args:
         user_input: Free text content brief from user
+        clarifications: Optional answers to clarifying questions
 
     Returns:
         Final workflow state with completed content
@@ -291,6 +244,7 @@ def print_workflow_summary(state: WorkflowState) -> None:
 
     if state.content_plan:
         print(f"📖 Title: {state.content_plan.title}")
+        print(f"📊 Target Words: {state.content_plan.estimated_word_count}")
 
     if state.consolidated_research:
         print(
@@ -320,44 +274,30 @@ def create_content_workflow() -> StateGraph:
     # Add all nodes
     workflow.add_node("parse_brief", parse_brief_node)
     workflow.add_node("validate_brief", validate_brief_node)
-    workflow.add_node("enhance_brief", enhance_brief_node)
-    workflow.add_node("conduct_research", research_node)
-    workflow.add_node("generate_ideas", generate_ideas_node)
-    workflow.add_node("select_idea", select_idea_node)
     workflow.add_node("plan_content", plan_content_node)
+    workflow.add_node("conduct_research", research_node)
     workflow.add_node("write_content", write_content_node)
-    # workflow.add_node("human_review", human_review_node)
+    workflow.add_node("human_review", human_review_node)
 
     # Set entry point
     workflow.set_entry_point("parse_brief")
 
     # Define the workflow edges
     workflow.add_edge("parse_brief", "validate_brief")
-    workflow.add_conditional_edges(
-        "validate_brief",
-        route_after_validation,
-        {
-            "enhance_brief": "enhance_brief",
-            "conduct_research": "conduct_research",
-        },
-    )
-    workflow.add_edge("enhance_brief", "conduct_research")
-    workflow.add_edge("conduct_research", "generate_ideas")
-    workflow.add_edge("generate_ideas", "select_idea")
-    workflow.add_edge("select_idea", "plan_content")
-    workflow.add_edge("plan_content", "write_content")
-    #
-    # workflow.add_edge("write_content", "human_review")
+    workflow.add_edge("validate_brief", "plan_content")
+    workflow.add_edge("plan_content", "conduct_research")
+    workflow.add_edge("conduct_research", "write_content")
+    workflow.add_edge("write_content", "human_review")
 
     # Conditional: Process human feedback
-    # workflow.add_conditional_edges(
-    #     "human_review",
-    #     process_human_feedback,
-    #     {
-    #         "finalize": END,
-    #         "write_content": "write_content",
-    #         "plan_content": "plan_content"
-    #     }
-    # )
+    workflow.add_conditional_edges(
+        "human_review",
+        process_human_feedback,
+        {
+            "finalize": END,
+            "write_content": "write_content",
+            "plan_content": "plan_content",
+        },
+    )
 
     return workflow

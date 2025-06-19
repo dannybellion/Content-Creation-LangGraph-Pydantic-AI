@@ -1,4 +1,3 @@
-import os
 from typing import Type, TypeVar, Generic, Any, List, Union
 
 from pydantic import BaseModel
@@ -6,7 +5,7 @@ from pydantic_ai import Agent
 from pydantic_ai.messages import BinaryContent, ImageUrl, AudioUrl, DocumentUrl
 
 from src.utils.logging import logger, log_object
-from src.services.shared.ai.observability import (
+from src.utils.observability import (
     flush_traces,
     configure_observability,
 )
@@ -118,9 +117,9 @@ class BaseAgent(Generic[T]):
             result = await self.agent.run(inputs, **run_kwargs)
             flush_traces()
             log_object(
-                title="Agent Result",
+                title=f"Agent: {self.name}",
                 object=result.output,
-                subtitle=f"Agent: {self.model_name}",
+                subtitle=f"Model: {self.model_name}",
             )
             return result.output
         except Exception as e:

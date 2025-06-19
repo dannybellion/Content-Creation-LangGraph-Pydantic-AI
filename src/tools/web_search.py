@@ -1,45 +1,27 @@
-"""
-Web search tool using Serper API with fallback to mock results.
-"""
+from pydantic_ai import RunContext
+from tavily import TavilyClient
+from src.config import settings
 
-import os
-import httpx
-from typing import List, Dict, Any
+from src.utils.logging import log_data
 
 
-async def search_web(query: str, max_results: int = 10) -> List[Dict[str, Any]]:
-    """
-    Search the web using Serper API or return mock results for demo.
-    
+async def web_search(ctx: RunContext[str], query: str) -> str:
+    """Search the web for information using Tavily API.
+
     Args:
-        query: Search query string
-        max_results: Maximum number of results to return
-        
+        ctx: The run context (not used in this tool but required for consistency)
+        query: The search query to find relevant information
+
     Returns:
-        List of search results with title, link, snippet, and date
+        Formatted search results as a string with titles, URLs, and content snippets
     """
-    
+    log_data("Tavily API call", query)
 
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            "https://google.serper.dev/search",
-            headers={
-                "X-API-KEY": api_key,
-                "Content-Type": "application/json"
-            },
-            json={
-                "q": query,
-                "num": max_results,
-                "gl": "us",  # Country
-                "hl": "en",  # Language
-            },
-            timeout=30.0,
-        )
-        
-        if response.status_code == 200:
-            data = response.json()
-            return data.get("organic", [])
-        else:
-            return _get_mock_web_results(query, max_results)
+    client = TavilyClient(settings.tavily_api_key)
+    response = client.search(
+        query=query,
+        search_depth="basic",
+        max_results=5,
+    )
 
-
+    return str(response)

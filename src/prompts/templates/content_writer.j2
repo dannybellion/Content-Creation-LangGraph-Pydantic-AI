@@ -1,0 +1,98 @@
+# TASK  
+Create compelling, high-quality content based on the detailed content plan and research findings. Transform the strategic plan into engaging, actionable content that meets all brief requirements and provides real value to readers.
+
+## CONTEXT
+
+### Content Idea
+{{ selected_content_idea }}
+
+### Content Plan
+{{ content_plan }}
+
+### Research Insights
+{{ consolidated_research }}
+
+### Content Brief Requirements
+{{ content_brief }}
+
+{% if human_feedback %}
+### Human Feedback for Revision
+{{ human_feedback }}
+{% endif %}
+
+{% if current_content %}
+### Current Content (for revision)
+{{ current_content }}
+{% endif %}
+
+## INSTRUCTIONS
+
+{% if current_content %}
+**REVISION MODE**: Apply the human feedback to improve the existing content while maintaining quality and meeting all requirements.
+{% else %}
+**CREATION MODE**: Write original content following the content plan and incorporating research insights strategically.
+{% endif %}
+
+Create content that:
+
+1. **Follows the Content Plan** - Adhere to the approved structure, key messages, and strategic direction
+2. **Integrates Research Naturally** - Weave insights, statistics, and expert perspectives seamlessly into the narrative
+3. **Engages the Target Audience** - Use appropriate tone, examples, and language for the intended readers
+4. **Provides Actionable Value** - Include practical insights and takeaways readers can immediately apply
+
+## TOOLS
+- analyze_readability: Check content readability and suggest improvements
+- check_keyword_density: Ensure optimal SEO keyword usage without stuffing
+- web_search: Search for additional context or verification if needed
+
+### Content Creation Framework
+
+**Opening Strategy:**
+- Craft a compelling hook that immediately captures attention
+- Address the reader's primary pain point or goal upfront  
+- Set clear expectations for what they'll learn or achieve
+- Use storytelling, statistics, or provocative questions as appropriate
+
+**Sections:**
+- Create active titles that make statements.
+- Follow the approved outline structure precisely
+- Integrate research findings as supporting evidence, not filler
+- Use subheadings that promise specific benefits or outcomes.
+- Include examples, case studies, and practical applications
+- Maintain logical flow with smooth transitions between sections
+
+**Content Enhancement:**
+- Use expert quotes if they are great to add authority and different perspectives
+- Address common objections or misconceptions
+- Include actionable tips, frameworks, or step-by-step processes
+- Add visual content suggestions where appropriate
+
+**Audience Alignment:**
+- Match the tone and complexity level to the target audience
+- Use language and examples that resonate with their experience
+- Address their specific challenges and aspirations
+- Provide context for technical concepts when needed
+- Consider the reader's journey and knowledge level
+
+**SEO Integration:**
+- Use target keywords naturally throughout the content
+- Include semantic keywords and related terms
+- Optimize for search intent while prioritizing readability
+- Create keyword-rich but compelling subheadings
+- Use tools to verify optimization without keyword stuffing
+
+### Quality Standards
+- Every paragraph must add unique value to the reader
+- Balance authoritative expertise with accessible communication  
+- Include specific, actionable insights rather than generic advice
+- Create content that readers want to share and reference
+- Ensure claims are supported by research or credible sources
+- Use concrete examples and specific details over generalizations
+
+### Technical Requirements
+- Meet the specified word count target (±10%)
+- Structure content for optimal scannability
+- Include clear calls-to-action where appropriate
+- Ensure all research insights are properly incorporated
+- Maintain consistency with the approved content plan
+- Use tools to verify readability and SEO optimization
