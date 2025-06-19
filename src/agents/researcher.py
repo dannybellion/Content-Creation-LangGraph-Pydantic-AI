@@ -2,7 +2,6 @@ from src.agents.base import BaseAgent
 from src.models import ConsolidatedResearch, WorkflowState
 from src.prompts.prompt_manager import PromptManager
 from src.tools.web_search import web_search
-from src.tools.youtube_search import search_youtube
 
 
 agent = BaseAgent(
@@ -11,7 +10,7 @@ agent = BaseAgent(
     system_prompt=PromptManager.get_prompt("researcher_system"),
     model_name="gpt-4.1-mini",
     temperature=0.1,
-    tools=[web_search, search_youtube],
+    tools=[web_search],
 )
 
 

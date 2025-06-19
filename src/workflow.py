@@ -3,14 +3,16 @@ Content creation workflow using LangGraph to orchestrate agents.
 """
 
 from typing import Dict, Any
-from langgraph.graph import StateGraph
+from langgraph.graph import StateGraph, END
 from langgraph.types import interrupt
 
 from src.models import WorkflowState, HumanFeedback, BriefValidation
 from src.agents.brief_parser import parse_brief
 from src.agents.brief_validator import validate_brief
-from src.agents.idea_generator import generate_content_ideas
-from src.agents.content_planner import create_content_plan
+
+# Note: idea_generator removed in favor of direct headline generation per Cole & Greg framework
+from src.agents.headline_generator import generate_headlines
+from src.agents.content_editor import make_editorial_decisions
 from src.agents.researcher import conduct_research
 from src.agents.content_writer import write_content, revise_content
 
@@ -83,56 +85,72 @@ async def research_node(state: WorkflowState) -> Dict[str, Any]:
     return {"consolidated_research": research}
 
 
-async def generate_ideas_node(state: WorkflowState) -> Dict[str, Any]:
-    """Generate content ideas from research and brief."""
-    print("💡 Generating content ideas...")
-
-    idea_options = await generate_content_ideas(state)
-
-    return {"content_idea_options": idea_options}
+# Note: idea generation and selection removed per Cole & Greg framework
+# Headlines ARE the content ideas, so we go directly from research to headline generation
 
 
-async def select_idea_node(state: WorkflowState) -> Dict[str, Any]:
-    """Present ideas to human for selection."""
-    print("🎯 Presenting content ideas for selection...")
+async def generate_headlines_node(state: WorkflowState) -> Dict[str, Any]:
+    """Generate multiple headline variations following Cole & Greg framework."""
+    print("📰 Generating strategic headline variations...")
 
-    ideas = state.content_idea_options
+    headline_options = await generate_headlines(state)
 
-    # Display ideas to user
-    print("\n📝 CONTENT IDEAS:")
-    for i, idea in enumerate(ideas.ideas, 1):
-        print(f"\n{i}. {idea.title}")
-        print(f"   Hook: {idea.hook}")
-        print(f"   Angle: {idea.angle}")
-        print(f"   Description: {idea.description}")
+    return {"headline_options": headline_options}
+
+
+async def select_headline_node(state: WorkflowState) -> Dict[str, Any]:
+    """Present headline variations for human selection."""
+    print("🎯 Presenting headline variations for selection...")
+
+    headlines = state.headline_options
+
+    # Display top headline recommendations
+    print("\n📰 TOP HEADLINE RECOMMENDATIONS:")
+    for i, idx in enumerate(headlines.recommended_top_3, 1):
+        variation = headlines.variations[idx]
+        print(f"\n{i}. {variation.headline}")
+        print(f"   Hook Strength: {variation.hook_strength}/10")
+        print(f"   Audience Fit: {variation.target_audience_fit}/10")
+        print("   Main Points:")
+        for j, point in enumerate(variation.main_points, 1):
+            print(f"     {j}. {point}")
 
     # Get user selection
     user_choice = interrupt(
-        "Please select which content idea you'd like to proceed with (1, 2, or 3):"
+        "Please select which headline you'd like to proceed with (1, 2, or 3):"
     )
 
-    # Parse user choice and get selected idea
+    # Parse user choice and get selected headline
     try:
         choice_index = int(user_choice.strip()) - 1
-        if 0 <= choice_index < len(ideas.ideas):
-            selected_idea = ideas.ideas[choice_index]
+        if 0 <= choice_index < len(headlines.recommended_top_3):
+            selected_idx = headlines.recommended_top_3[choice_index]
+            selected_headline = headlines.variations[selected_idx]
         else:
-            # Default to first idea if invalid choice
-            selected_idea = ideas.ideas[0]
+            # Default to first recommendation if invalid choice
+            selected_idx = headlines.recommended_top_3[0]
+            selected_headline = headlines.variations[selected_idx]
     except (ValueError, IndexError):
-        # Default to first idea if parsing fails
-        selected_idea = ideas.ideas[0]
+        # Default to first recommendation if parsing fails
+        selected_idx = headlines.recommended_top_3[0]
+        selected_headline = headlines.variations[selected_idx]
 
-    return {"selected_content_idea": selected_idea}
+    return {"selected_headline_variation": selected_headline}
 
 
-async def plan_content_node(state: WorkflowState) -> Dict[str, Any]:
-    """Create detailed content plan from selected idea."""
-    print("📋 Creating content plan...")
+async def make_editorial_decisions_node(
+    state: WorkflowState,
+) -> Dict[str, Any]:
+    """Make high-leverage editorial decisions and create strategic content plan."""
+    print("🎭 Making editorial decisions and strategic planning...")
 
-    plan = await create_content_plan(state)
+    content_plan = await make_editorial_decisions(state)
 
-    return {"content_plan": plan}
+    return {"content_plan": content_plan}
+
+
+# Note: plan_content_node has been replaced by make_editorial_decisions_node
+# which follows the Cole & Greg framework for high-leverage decision making
 
 
 async def write_content_node(state: WorkflowState) -> Dict[str, Any]:
@@ -289,8 +307,27 @@ def print_workflow_summary(state: WorkflowState) -> None:
         print(f"🎯 Audience: {state.content_brief.target_audience}")
         print(f"📝 Type: {state.content_brief.content_type}")
 
+    # Note: Content idea selection removed - headlines ARE the content ideas
+
+    if state.selected_headline_variation:
+        print(
+            f"📰 Selected Headline: {state.selected_headline_variation.headline}"
+        )
+        print(
+            f"📊 Hook Strength: {state.selected_headline_variation.hook_strength}/10"
+        )
+
     if state.content_plan:
-        print(f"📖 Title: {state.content_plan.title}")
+        print(f"📖 Strategic Title: {state.content_plan.selected_headline}")
+        print(
+            f"🎯 Container Type: {state.content_plan.content_container.container_type}"
+        )
+        print(
+            f"✨ Magical Way: {state.content_plan.content_container.magical_way}"
+        )
+        print(
+            f"🎯 Tangible Value Score: {state.content_plan.tangible_value_score}/10"
+        )
 
     if state.consolidated_research:
         print(
@@ -314,7 +351,7 @@ def print_workflow_summary(state: WorkflowState) -> None:
 
 
 def create_content_workflow() -> StateGraph:
-    """Create and configure the content creation workflow with interrupts."""
+    """Create and configure the content creation workflow with Cole & Greg framework."""
     workflow = StateGraph(WorkflowState)
 
     # Add all nodes
@@ -322,16 +359,18 @@ def create_content_workflow() -> StateGraph:
     workflow.add_node("validate_brief", validate_brief_node)
     workflow.add_node("enhance_brief", enhance_brief_node)
     workflow.add_node("conduct_research", research_node)
-    workflow.add_node("generate_ideas", generate_ideas_node)
-    workflow.add_node("select_idea", select_idea_node)
-    workflow.add_node("plan_content", plan_content_node)
+    workflow.add_node("generate_headlines", generate_headlines_node)
+    workflow.add_node("select_headline", select_headline_node)
+    workflow.add_node(
+        "make_editorial_decisions", make_editorial_decisions_node
+    )
     workflow.add_node("write_content", write_content_node)
     # workflow.add_node("human_review", human_review_node)
 
     # Set entry point
     workflow.set_entry_point("parse_brief")
 
-    # Define the workflow edges
+    # Define the workflow edges (updated for Cole & Greg framework)
     workflow.add_edge("parse_brief", "validate_brief")
     workflow.add_conditional_edges(
         "validate_brief",
@@ -342,10 +381,19 @@ def create_content_workflow() -> StateGraph:
         },
     )
     workflow.add_edge("enhance_brief", "conduct_research")
-    workflow.add_edge("conduct_research", "generate_ideas")
-    workflow.add_edge("generate_ideas", "select_idea")
-    workflow.add_edge("select_idea", "plan_content")
-    workflow.add_edge("plan_content", "write_content")
+    workflow.add_edge(
+        "conduct_research", "generate_headlines"
+    )  # Direct from research to headlines per Cole & Greg framework
+    workflow.add_edge(
+        "generate_headlines", "select_headline"
+    )  # New: Human selects best headline
+    workflow.add_edge(
+        "select_headline", "make_editorial_decisions"
+    )  # New: Strategic planning with selected headline
+    workflow.add_edge(
+        "make_editorial_decisions", "write_content"
+    )  # Editorial decisions feed into writing
+    workflow.add_edge("write_content", END)  # Complete workflow after writing
     #
     # workflow.add_edge("write_content", "human_review")
 

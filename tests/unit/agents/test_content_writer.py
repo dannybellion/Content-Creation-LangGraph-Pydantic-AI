@@ -48,6 +48,4 @@ async def test_agent_structure():
     """Test that the agent is properly configured."""
     assert agent.name == "content_writer"
     assert agent.output_type == DraftContent
-    assert (
-        len(agent.tools) == 3
-    )
+    assert len(agent.tools) == 3

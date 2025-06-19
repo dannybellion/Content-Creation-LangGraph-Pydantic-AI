@@ -1,7 +1,6 @@
 from src.agents.base import BaseAgent
 from src.models import ContentBrief
 from src.prompts.prompt_manager import PromptManager
-from src.config import settings
 
 agent = BaseAgent(
     name="brief_parser",

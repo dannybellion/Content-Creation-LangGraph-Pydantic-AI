@@ -1,7 +1,6 @@
 from src.agents.base import BaseAgent
 from src.models import BriefValidation, ContentBrief
 from src.prompts.prompt_manager import PromptManager
-from src.config import settings
 
 agent = BaseAgent(
     name="brief_validator",
@@ -13,19 +12,13 @@ agent = BaseAgent(
 
 
 async def validate_brief(brief: ContentBrief) -> BriefValidation:
-    """Validate a ContentBrief and return validation results."""
+    """Validate a ContentBrief for Cole & Greg framework readiness."""
     validation_prompt = f"""
-    Please validate this content brief for completeness:
+    Validate this content brief for strategic content creation readiness:
 
-    Topic: {brief.topic}
-    Target Audience: {brief.target_audience}
-    Content Type: {brief.content_type}
-    Tone: {brief.tone}
-    Word Count Target: {brief.word_count_target}
-    Key Points: {brief.key_points}
-    Call to Action: {brief.call_to_action}
+    {brief}
 
-    Analyze this brief and determine if there's sufficient information to create high-quality content.
+    Determine if we have sufficient information to execute the Cole & Greg framework for high-leverage content decisions.
     """
 
     return await agent.run(validation_prompt)

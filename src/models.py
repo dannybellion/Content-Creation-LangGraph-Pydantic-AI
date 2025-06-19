@@ -68,33 +68,173 @@ class ContentIdeaOptions(BaseModel):
     ideas: List[ContentIdea] = Field(
         ..., description="Generated content ideas", min_length=3, max_length=3
     )
-    
-    
+
+
+class HeadlineVariation(BaseModel):
+    """Individual headline variation with main points."""
+
+    headline: str = Field(..., description="Compelling, specific headline")
+    main_points: List[str] = Field(
+        ...,
+        description="3-5 main points that deliver on the headline promise",
+        min_length=3,
+        max_length=5,
+    )
+    hook_strength: int = Field(
+        ..., ge=1, le=10, description="Hook strength rating 1-10"
+    )
+    target_audience_fit: int = Field(
+        ..., ge=1, le=10, description="Audience alignment rating 1-10"
+    )
+
+
+class HeadlineOptions(BaseModel):
+    """Collection of headline variations for strategic selection."""
+
+    variations: List[HeadlineVariation] = Field(
+        ...,
+        description="Generated headline variations",
+        min_length=15,
+        max_length=20,
+    )
+    recommended_top_3: List[int] = Field(
+        ...,
+        description="Indices of top 3 recommended headlines",
+        min_length=3,
+        max_length=3,
+    )
+
+
+class ContentContainer(BaseModel):
+    """Content framework/container for organizing the piece."""
+
+    container_type: Literal[
+        "rule_of_three",
+        "listicle",
+        "how_to_guide",
+        "case_study",
+        "framework",
+        "story_based",
+        "comparison",
+        "trend_analysis",
+    ] = Field(..., description="Type of content container/framework")
+    magical_way: Literal[
+        "tips",
+        "stats",
+        "steps",
+        "lessons",
+        "examples",
+        "reasons",
+        "stories",
+        "quotes",
+        "resources",
+        "frameworks",
+    ] = Field(..., description="The 'magical way' this content delivers value")
+    structure_rationale: str = Field(
+        ..., description="Why this container fits the content and audience"
+    )
+    sections_count: int = Field(
+        ..., ge=3, le=10, description="Number of main sections"
+    )
+
+
 class Idea(BaseModel):
     """An idea for the content."""
-    
+
     title: str = Field(..., description="Active title")
     background: str = Field(..., description="1000 words of background")
 
 
-class ContentPlan(BaseModel):
-    """Detailed plan for content creation."""
+class PrioritizedIdea(BaseModel):
+    """Prioritized content idea with strategic importance."""
 
-    title: str = Field(..., description="Proposed title for the content")
-    hook: str = Field(..., description="Scroll-stopping idea")
-    style: str = Field(..., description="Style of the content")
-    key_ideas: List[Idea] = Field(
-        ..., description="3 Core messages"
+    title: str = Field(..., description="Active, compelling section title")
+    priority_rank: int = Field(
+        ..., ge=1, le=3, description="Priority ranking (1=highest)"
     )
+    value_proposition: str = Field(
+        ..., description="Specific value this section delivers"
+    )
+    supporting_research: List[str] = Field(
+        default_factory=list,
+        description="Key research points supporting this idea",
+    )
+
+
+class ContentPlan(BaseModel):
+    """Strategic content plan following Cole & Greg framework."""
+
+    # Strategic headline decision
+    selected_headline: str = Field(
+        ..., description="Chosen headline that makes a clear promise"
+    )
+    headline_promise: str = Field(
+        ..., description="What the headline promises to deliver"
+    )
+
+    # Container and structure
+    content_container: ContentContainer = Field(
+        ..., description="Selected content framework"
+    )
+
+    # Hook and opening strategy
+    hook: str = Field(..., description="Scroll-stopping opening idea")
+    opening_strategy: str = Field(
+        ...,
+        description="How to immediately capture attention and set expectations",
+    )
+
+    # Core content strategy
+    key_ideas: List[PrioritizedIdea] = Field(
+        ...,
+        description="3 prioritized core messages (stack-ranked by impact)",
+        min_length=3,
+        max_length=3,
+    )
+
+    # Differentiation and positioning
     content_differentiation: str = Field(
-        ..., description="What makes this content different"
+        ..., description="Unique value proposition - what makes this different"
     )
+    contrarian_angle: Optional[str] = Field(
+        None,
+        description="Counter-intuitive perspective that challenges assumptions",
+    )
+
+    # Research integration strategy
     research_integration: str = Field(
-        ..., description="How to integrate research into the content"
+        ..., description="How to weave insights naturally into narrative"
     )
+    surprising_insights: List[str] = Field(
+        default_factory=list,
+        description="Counter-intuitive findings to highlight",
+    )
+    actionable_takeaways: List[str] = Field(
+        ...,
+        description="Specific actions readers can take immediately",
+        min_length=3,
+    )
+
+    # Audience and engagement
     audience_alignment: str = Field(
-        ..., description="How to align the content to the audience"
+        ..., description="How content addresses audience pain points and goals"
     )
+    funnel_strategy: str = Field(
+        ...,
+        description="How to lead with strongest material and maintain engagement",
+    )
+
+    # Quality assurance
+    subhead_promise_check: bool = Field(
+        ..., description="Confirmed that subheads deliver on headline promise"
+    )
+    tangible_value_score: int = Field(
+        ...,
+        ge=1,
+        le=10,
+        description="How tangible/actionable the content is (1-10)",
+    )
+    content_style: str = Field(..., description="The style of the content")
 
 
 # ============================================================================
@@ -107,6 +247,7 @@ class ConsolidatedResearch(BaseModel):
 
     web_research: str = Field(..., description="Web research")
     youtube_research: str = Field(..., description="Youtube research")
+    general_background: str = Field(..., description="General background")
     key_insights: List[str] = Field(..., description="Combined key insights")
     unique_angles: List[str] = Field(
         ..., description="Unique content angles discovered"
@@ -145,9 +286,7 @@ class DraftContent(BaseModel):
 
     title: str = Field(..., description="Final title")
     hook_paragraph: str = Field(..., description="Hook paragraph")
-    sections: List[ContentSection] = Field(
-        ..., description="The core ideas"
-    )
+    sections: List[ContentSection] = Field(..., description="The core ideas")
     conclusion: str = Field(..., description="Conclusion")
     meta_description: str = Field(..., description="SEO meta description")
     tags: List[str] = Field(..., description="Content tags")
@@ -195,9 +334,11 @@ class WorkflowState(BaseModel):
     # youtube_research: Optional[YouTubeResearchResults] = None
     consolidated_research: Optional[ConsolidatedResearch] = None
 
-    # Content ideas
+    # Content ideas and headlines
     content_idea_options: Optional[ContentIdeaOptions] = None
     selected_content_idea: Optional[ContentIdea] = None
+    headline_options: Optional[HeadlineOptions] = None
+    selected_headline_variation: Optional[HeadlineVariation] = None
 
     # Planning
     content_plan: Optional[ContentPlan] = None

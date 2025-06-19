@@ -16,7 +16,9 @@ async def main():
 
     # Get user input
     # user_input = input("\nEnter your brief: ").strip()
-    user_input = "blog post on the best way to build a content creation pipeline using AI"
+    user_input = (
+        "linkedin post of using pydantic ai to build agents in production"
+    )
 
     print("\n" + "=" * 50)
 

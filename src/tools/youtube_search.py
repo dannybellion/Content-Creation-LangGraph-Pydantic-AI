@@ -162,7 +162,9 @@ async def _get_transcript(
 if __name__ == "__main__":
 
     async def test_search():
-        videos = await _get_transcript('https://www.youtube.com/watch?v=om-etwwp3Wg&t=6s')
+        videos = await _get_transcript(
+            "https://www.youtube.com/watch?v=om-etwwp3Wg&t=6s"
+        )
         print(videos)
- 
+
     asyncio.run(test_search())
