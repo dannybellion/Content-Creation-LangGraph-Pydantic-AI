@@ -1,5 +1,6 @@
 from src.agents.base import BaseAgent
-from src.models import ConsolidatedResearch, WorkflowState
+from src.models.agent_outputs import ConsolidatedResearch
+from src.graph.state import WorkflowState
 from src.prompts.prompt_manager import PromptManager
 from src.tools.web_search import web_search
 

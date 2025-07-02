@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import patch
 
 from src.agents.content_editor import agent, make_editorial_decisions
-from src.models import ContentPlan, HeadlineVariation
+from src.models.agent_outputs import ContentPlan, HeadlineVariation
 
 pytestmark = pytest.mark.anyio(backends=["asyncio"])
 

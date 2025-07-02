@@ -1,8 +1,6 @@
 from src.agents.base import BaseAgent
-from src.models import (
-    DraftContent,
-    WorkflowState,
-)
+from src.models.agent_outputs import DraftContent
+from src.graph.state import WorkflowState
 from src.prompts.prompt_manager import PromptManager
 from src.tools.content_analysis import (
     analyze_readability,

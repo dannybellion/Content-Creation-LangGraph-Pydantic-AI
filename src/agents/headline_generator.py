@@ -1,5 +1,6 @@
 from src.agents.base import BaseAgent
-from src.models import HeadlineOptions, WorkflowState
+from src.models.agent_outputs import HeadlineOptions
+from src.graph.state import WorkflowState
 from src.prompts.prompt_manager import PromptManager
 
 agent = BaseAgent(

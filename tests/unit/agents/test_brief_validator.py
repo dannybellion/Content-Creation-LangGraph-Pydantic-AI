@@ -1,7 +1,7 @@
 import pytest
 
 from src.agents.brief_validator import agent, validate_brief
-from src.models import BriefValidation, ContentBrief
+from src.models.agent_outputs import BriefValidation, ContentBrief
 
 pytestmark = pytest.mark.anyio(backends=["asyncio"])
 

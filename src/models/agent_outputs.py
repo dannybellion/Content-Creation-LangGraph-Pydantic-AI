@@ -1,14 +1,13 @@
 """
-Pydantic models for the content creation pipeline.
+Pydantic models for LLM agent structured outputs.
 """
 
-from datetime import datetime
 from typing import List, Optional, Literal
 from pydantic import BaseModel, Field
 
 
 # ============================================================================
-# Core Content Models
+# Brief Parsing and Validation
 # ============================================================================
 
 
@@ -47,6 +46,11 @@ class BriefValidation(BaseModel):
     )
 
 
+# ============================================================================
+# Content Ideas
+# ============================================================================
+
+
 class ContentIdea(BaseModel):
     """Individual content idea generated from research and brief."""
 
@@ -68,6 +72,11 @@ class ContentIdeaOptions(BaseModel):
     ideas: List[ContentIdea] = Field(
         ..., description="Generated content ideas", min_length=3, max_length=3
     )
+
+
+# ============================================================================
+# Headlines
+# ============================================================================
 
 
 class HeadlineVariation(BaseModel):
@@ -105,6 +114,11 @@ class HeadlineOptions(BaseModel):
     )
 
 
+# ============================================================================
+# Content Planning
+# ============================================================================
+
+
 class ContentContainer(BaseModel):
     """Content framework/container for organizing the piece."""
 
@@ -136,13 +150,6 @@ class ContentContainer(BaseModel):
     sections_count: int = Field(
         ..., ge=3, le=10, description="Number of main sections"
     )
-
-
-class Idea(BaseModel):
-    """An idea for the content."""
-
-    title: str = Field(..., description="Active title")
-    background: str = Field(..., description="1000 words of background")
 
 
 class PrioritizedIdea(BaseModel):
@@ -238,7 +245,7 @@ class ContentPlan(BaseModel):
 
 
 # ============================================================================
-# Research Models
+# Research
 # ============================================================================
 
 
@@ -270,7 +277,7 @@ class ConsolidatedResearch(BaseModel):
 
 
 # ============================================================================
-# Content Creation Models
+# Content Creation
 # ============================================================================
 
 
@@ -296,102 +303,3 @@ class DraftContent(BaseModel):
     )
     call_to_action: Optional[str] = Field(None, description="Call to action")
     author_notes: str = Field(..., description="Notes for the human reviewer")
-
-
-# ============================================================================
-# Workflow State Model
-# ============================================================================
-
-
-class HumanFeedback(BaseModel):
-    """Human feedback on content."""
-
-    feedback_type: Literal["approve", "edit_content", "change_plan"] = Field(
-        ..., description="Type of feedback"
-    )
-    comments: str = Field(..., description="Specific feedback comments")
-    requested_changes: List[str] = Field(
-        default_factory=list, description="Specific changes requested"
-    )
-    priority: Literal["high", "medium", "low"] = "medium"
-    preserve_elements: List[str] = Field(
-        default_factory=list, description="Elements to keep unchanged"
-    )
-
-
-class WorkflowState(BaseModel):
-    """Complete state of the content creation workflow."""
-
-    # Input
-    original_input: str = Field(..., description="Original free text input")
-
-    # Parsed and validated brief
-    content_brief: Optional[ContentBrief] = None
-    brief_validation: Optional[BriefValidation] = None
-
-    # Research
-    web_research: Optional[str] = None
-    # youtube_research: Optional[YouTubeResearchResults] = None
-    consolidated_research: Optional[ConsolidatedResearch] = None
-
-    # Content ideas and headlines
-    content_idea_options: Optional[ContentIdeaOptions] = None
-    selected_content_idea: Optional[ContentIdea] = None
-    headline_options: Optional[HeadlineOptions] = None
-    selected_headline_variation: Optional[HeadlineVariation] = None
-
-    # Planning
-    content_plan: Optional[ContentPlan] = None
-
-    # Content creation
-    draft_content: Optional[DraftContent] = None
-
-    # Human review
-    human_feedback: Optional[HumanFeedback] = None
-
-    # User interaction
-    user_response: Optional[str] = None
-
-    # Workflow metadata
-    current_step: str = "parse_brief"
-    revision_count: int = 0
-    created_at: datetime = Field(default_factory=datetime.now)
-    updated_at: datetime = Field(default_factory=datetime.now)
-    is_complete: bool = False
-
-    def update_step(self, step: str):
-        """Update the current workflow step."""
-        self.current_step = step
-        self.updated_at = datetime.now()
-
-    def increment_revision(self):
-        """Increment revision counter."""
-        self.revision_count += 1
-        self.updated_at = datetime.now()
-
-
-# ============================================================================
-# Configuration Models
-# ============================================================================
-
-
-class AgentConfig(BaseModel):
-    """Configuration for individual agents."""
-
-    model_name: str = "gpt-4o"
-    temperature: float = 0.0
-    max_retries: int = 3
-    timeout_seconds: int = 60
-
-
-class WorkflowConfig(BaseModel):
-    """Configuration for the entire workflow."""
-
-    max_revisions: int = 3
-    max_research_results: int = 10
-    target_research_quality: float = 0.8
-    enable_youtube_research: bool = True
-    enable_web_research: bool = True
-    content_writer_config: AgentConfig = Field(default_factory=AgentConfig)
-    planner_config: AgentConfig = Field(default_factory=AgentConfig)
-    researcher_config: AgentConfig = Field(default_factory=AgentConfig)

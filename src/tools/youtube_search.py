@@ -165,6 +165,6 @@ if __name__ == "__main__":
         videos = await _get_transcript(
             "https://www.youtube.com/watch?v=om-etwwp3Wg&t=6s"
         )
-        print(videos)
+        logger.info(f"Test search results: {videos}")
 
     asyncio.run(test_search())

@@ -1,7 +1,7 @@
 import pytest
 
 from src.agents.researcher import agent, conduct_research
-from src.models import ConsolidatedResearch
+from src.models.agent_outputs import ConsolidatedResearch
 
 pytestmark = pytest.mark.anyio(backends=["asyncio"])
 
@@ -29,7 +29,8 @@ async def test_conduct_research_detailed_brief(
     mock_web_search_researcher, test_model_override
 ):
     """Test research with a detailed content brief."""
-    from src.models import WorkflowState, ContentBrief
+    from src.graph.state import WorkflowState
+    from src.models.agent_outputs import ContentBrief
 
     detailed_state = WorkflowState(
         original_input="Comprehensive guide on AI automation tools",
@@ -63,7 +64,8 @@ async def test_conduct_research_technical_topic(
     mock_web_search_researcher, test_model_override
 ):
     """Test research on technical topics."""
-    from src.models import WorkflowState, ContentBrief
+    from src.graph.state import WorkflowState
+    from src.models.agent_outputs import ContentBrief
 
     technical_state = WorkflowState(
         original_input="Machine learning model deployment",

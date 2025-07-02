@@ -1,5 +1,5 @@
 from src.agents.base import BaseAgent
-from src.models import BriefValidation, ContentBrief
+from src.models.agent_outputs import BriefValidation, ContentBrief
 from src.prompts.prompt_manager import PromptManager
 
 agent = BaseAgent(

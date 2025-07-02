@@ -1,7 +1,7 @@
 import pytest
 
 from src.agents.content_writer import agent, write_content, revise_content
-from src.models import (
+from src.models.agent_outputs import (
     DraftContent,
 )
 

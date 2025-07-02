@@ -171,8 +171,8 @@ def test_model_override():
 @pytest.fixture
 def sample_workflow_state():
     """Create a sample workflow state for testing across all agents."""
-    from src.models import (
-        WorkflowState,
+    from src.graph.state import WorkflowState
+    from src.models.agent_outputs import (
         ContentBrief,
         ConsolidatedResearch,
     )
@@ -209,7 +209,7 @@ def sample_workflow_state():
 @pytest.fixture
 def sample_draft_content():
     """Create sample draft content for revision testing."""
-    from src.models import DraftContent, ContentSection
+    from src.models.agent_outputs import DraftContent, ContentSection
 
     return DraftContent(
         title="Sample Content Title",
@@ -237,7 +237,7 @@ def sample_draft_content():
 @pytest.fixture
 def sample_human_feedback():
     """Create sample human feedback for revision testing."""
-    from src.models import HumanFeedback
+    from src.graph.state import HumanFeedback
 
     return HumanFeedback(
         feedback_type="edit_content",
@@ -285,7 +285,7 @@ def mock_content_writer_agent(
 ):
     """Create a content writer agent with mocked tools."""
     from src.agents.base import BaseAgent
-    from src.models import DraftContent
+    from src.models.agent_outputs import DraftContent
     from src.prompts.prompt_manager import PromptManager
 
     return BaseAgent(

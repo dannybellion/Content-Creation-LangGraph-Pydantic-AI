@@ -1,7 +1,7 @@
 import pytest
 
 from src.agents.brief_parser import agent, parse_brief
-from src.models import ContentBrief
+from src.models.agent_outputs import ContentBrief
 
 pytestmark = pytest.mark.anyio(backends=["asyncio"])
 
@@ -43,7 +43,6 @@ async def test_parse_brief_detailed_input(test_model_override):
     assert result.tone
     assert result.word_count_target is None or result.word_count_target > 0
     assert isinstance(result.key_points, list)
-    # call_to_action is optional, just check it exists as an attribute
     assert hasattr(result, "call_to_action")
 
 
@@ -56,7 +55,7 @@ async def test_parse_brief_minimal_input(test_model_override):
 
     assert isinstance(result, ContentBrief)
     assert result.topic
-    assert result.target_audience  # Should have default values
+    assert result.target_audience
     assert result.content_type
     assert result.tone
     assert result.word_count_target is None or result.word_count_target > 0

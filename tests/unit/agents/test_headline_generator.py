@@ -1,7 +1,7 @@
 import pytest
 
 from src.agents.headline_generator import agent, generate_headlines
-from src.models import HeadlineOptions
+from src.models.agent_outputs import HeadlineOptions
 
 pytestmark = pytest.mark.anyio(backends=["asyncio"])
 
@@ -33,7 +33,8 @@ async def test_generate_headlines_different_content_types(
     mock_web_search_researcher, test_model_override
 ):
     """Test headline generation for different content types."""
-    from src.models import WorkflowState, ContentBrief, ConsolidatedResearch
+    from src.graph.state import WorkflowState
+    from src.models.agent_outputs import ContentBrief, ConsolidatedResearch
 
     # Test with different content types
     content_types = ["blog_post", "guide", "tutorial", "case_study"]
@@ -73,7 +74,8 @@ async def test_generate_headlines_different_content_types(
 
 async def test_generate_headlines_different_audiences(test_model_override):
     """Test headline generation for different target audiences."""
-    from src.models import WorkflowState, ContentBrief, ConsolidatedResearch
+    from src.graph.state import WorkflowState
+    from src.models.agent_outputs import ContentBrief, ConsolidatedResearch
 
     audiences = [
         "business executives",
@@ -117,7 +119,8 @@ async def test_generate_headlines_different_audiences(test_model_override):
 
 async def test_generate_headlines_different_tones(test_model_override):
     """Test headline generation with different tones."""
-    from src.models import WorkflowState, ContentBrief, ConsolidatedResearch
+    from src.graph.state import WorkflowState
+    from src.models.agent_outputs import ContentBrief, ConsolidatedResearch
 
     tones = ["professional", "casual", "authoritative", "friendly"]
 
