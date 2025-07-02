@@ -6,69 +6,71 @@ I watched this Greg Isenberg video on effective writing: https://www.youtube.com
 
 This project implements an automated content creation pipeline that mimics effective human writing processes. The system uses multiple AI agents working in coordination to research, analyze, and generate high-quality content based on trending topics and real-time web data.
 
-### Key Features
-
-- **Multi-agent workflow**: Specialized agents for research, analysis, and content generation
-- **Real-time web research**: Integration with Apify for up-to-date information gathering
-- **Structured data handling**: Pydantic AI ensures type-safe agent interactions
-- **Orchestrated pipeline**: LangGraph manages the complex workflow between agents
-- **Quality control**: Built-in review and refinement processes
 
 ## Technical Implementation
 
-### LangGraph Orchestration
+### Architecture
 
-LangGraph is used to orchestrate the workflow, managing the complex interactions between different agents and ensuring proper data flow throughout the pipeline. The workflow includes:
+The system is built around a modular architecture with clear separation of concerns:
 
-- **Research Agent**: Identifies trending topics and gathers initial research
-- **Data Collection Agent**: Uses Apify to search for relevant, up-to-date information
-- **Analysis Agent**: Processes and synthesizes the collected information
-- **Content Generation Agent**: Creates engaging, well-structured content
-- **Review Agent**: Performs quality checks and suggests improvements
+- **State Management**: Centralized workflow state using LangGraph's state management
+- **Agent System**: Pydantic AI agents with structured outputs and validation
+- **Workflow Orchestration**: LangGraph manages the pipeline with interrupt handling
+- **Research Tools**: Integrated web search and YouTube analysis capabilities
+- **Prompt Management**: Template-based prompting with Jinja2
 
-### Pydantic AI Agents
 
-Pydantic AI is used for the individual agents, providing:
+### Agents
 
-- **Type Safety**: Ensures data consistency between agent interactions
-- **Structured Outputs**: Guarantees properly formatted responses from each agent
-- **Validation**: Automatic validation of agent inputs and outputs
-- **Error Handling**: Robust error handling with clear feedback
-- **Modular Design**: Easy to extend and modify individual agents
-
-### Apify & Tavily Integrations
-
-- **Apify** is used to get relevant youtube videos and transcripts.
-- **Tavily** is used to get relevant web pages.
-
+- **Brief Parser** (`brief_parser.py`): Converts free text to structured briefs
+- **Brief Validator** (`brief_validator.py`): Validates brief completeness
+- **Headline Generator** (`headline_generator.py`): Creates compelling headlines
+- **Researcher** (`researcher.py`): Conducts comprehensive research
+- **Content Writer** (`content_writer.py`): Generates initial content drafts
+- **Content Editor** (`content_editor.py`): Refines content based on feedback
 
 ## Project Structure
 
 ```
-├── agents/
-│   ├── research_agent.py
-│   ├── data_collection_agent.py
-│   ├── analysis_agent.py
-│   ├── content_generation_agent.py
-│   └── review_agent.py
-├── workflows/
-│   ├── content_pipeline.py
-│   └── workflow_states.py
-├── models/
-│   ├── content_models.py
-│   └── research_models.py
-├── integrations/
-│   ├── apify_client.py
-│   └── web_search.py
-├── config/
-│   ├── settings.py
-│   └── prompts/
-├── tests/
-├── requirements.txt
-├── .env.example
-└── README.md
+├── src/
+│   ├── agents/                 # AI agents for different pipeline stages
+│   │   ├── base.py            # Base agent class with Pydantic AI integration
+│   │   ├── brief_parser.py    # Brief parsing agent
+│   │   ├── brief_validator.py # Brief validation agent
+│   │   ├── headline_generator.py # Headline generation agent
+│   │   ├── researcher.py      # Research agent
+│   │   ├── content_writer.py  # Content writing agent
+│   │   └── content_editor.py  # Content editing agent
+│   ├── graph/                 # LangGraph workflow management
+│   │   ├── builder.py         # Workflow graph construction
+│   │   ├── nodes.py           # Individual workflow nodes
+│   │   └── state.py           # Workflow state management
+│   ├── models/                # Pydantic data models
+│   │   ├── agent_outputs.py   # Agent output models
+│   │   └── domain.py          # Core domain models
+│   ├── prompts/               # Prompt templates and management
+│   │   ├── prompt_manager.py  # Template rendering and management
+│   │   └── templates/         # Jinja2 template files
+│   ├── tools/                 # Research and analysis tools
+│   │   ├── web_search.py      # Web search capabilities
+│   │   ├── youtube_search.py  # YouTube content analysis
+│   │   ├── content_analysis.py # Content quality analysis
+│   │   └── style_guidelines.py # Writing style guidelines
+│   ├── utils/                 # Utility functions
+│   │   ├── logging.py         # Structured logging
+│   │   ├── observability.py   # Tracing and monitoring
+│   │   └── utils.py           # Common utilities
+│   ├── config.py              # Configuration management
+│   └── runner.py              # Pipeline execution runner
+├── tests/                     # Test suite
+│   ├── unit/                  # Unit tests for agents and components
+│   └── integration/           # Integration tests
+├── main.py                    # Interactive demo application
+├── validate_config.py         # Configuration validation script
+├── pyproject.toml            # Project dependencies and configuration
+├── CLAUDE.md                 # AI assistant instructions
+└── README.md                 # This file
 ```
-
 
 ## Installation
 
@@ -78,17 +80,39 @@ Pydantic AI is used for the individual agents, providing:
    cd content-creation-pipeline
    ```
 
-2. **Create and activate virtual environment**
+2. **Install dependencies using uv**
    ```bash
    uv sync
    ```
 
-4. **Set up environment variables**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your API keys:
-   # OPENAI_API_KEY=your_openai_key
-   # ANTHROPIC_API_KEY=your_anthropic_key
-   # TAVILY_API_KEY=your_tavily_key
-   # APIFY_API_KEY=your_apify_key
-   ```
+### Environment Variables
+
+```bash
+# Required
+OPENAI_API_KEY=your_openai_key_here
+
+# Observability (optional)
+LANGFUSE_PUBLIC_KEY=your_langfuse_public_key
+LANGFUSE_SECRET_KEY=your_langfuse_secret_key  
+LANGFUSE_HOST=https://cloud.langfuse.com
+
+# External APIs
+APIFY_API_KEY=your_apify_key_for_youtube_search
+SERP_API_KEY=your_serp_api_key_for_web_search
+```
+
+## Usage
+
+```bash
+uv run -m main
+```
+
+## Dependencies
+
+- **Python**: >=3.11
+- **Core Frameworks**: LangGraph, Pydantic AI
+- **AI/ML**: OpenAI API integration
+- **Research**: Apify (YouTube), SERP API (web search)
+- **Templates**: Jinja2
+- **Observability**: Langfuse (optional)
+- **Development**: Ruff (formatting/linting), pytest (testing)
