@@ -2,9 +2,36 @@
 
 I watched this Greg Isenberg video on effective writing: https://www.youtube.com/watch?v=om-etwwp3Wg&t=6s which inspired me to create a multi-agent workflow to replicate this process.
 
+- Start with an Idea: Begin with a "seed of an idea".
+- Define Goals: Before writing, set clear goals for the piece, such as its purpose and specific elements to include.
+- Focus on Headlines and Main Points: Recognize that the headline and quality of main points determine most of a piece's value.
+- Use the "10 Magical Ways" Framework: Employ this framework to clarify content type (e.g., tips, steps) and overcome writer's block.
+- Iterative Refinement: Generate your own main points, then use AI to create more options and improve quality through a conversational, iterative process.
+- Embrace the "Editor-in-Chief" Role: Your primary value shifts to selecting and refining AI-generated content based on your taste and context.
+
 ## Overview
 
-This project implements an automated content creation pipeline that mimics effective human writing processes. The system uses multiple AI agents working in coordination to research, analyze, and generate high-quality content based on trending topics and real-time web data.
+1. Start with a rough idea - You give it a free-text brief like "I want to write about sustainable fashion for millennials"
+2. Interactive refinement - The system asks clarifying questions to
+understand your exact needs
+3. Automated research - It conducts comprehensive research using:
+  - Web search for current trends and data
+  - YouTube analysis for popular content angles
+  - SEO keyword research
+4. Content planning - Creates a detailed outline with:
+  - Section structure
+  - Key points to cover
+  - Research angles to pursue
+5. Draft creation - Writes the initial content based on research and your requirements
+6. Human feedback loop - You review the draft and provide feedback:
+  - "Make it more conversational"
+  - "Add more statistics"
+  - "Focus more on Gen Z instead"
+7. Iterative improvement - The system revises based on your feedback until you're satisfied
+
+The end result:
+
+You get a complete, publication-ready article that's well-researched, properly structured, and tailored to your specific audience and goals - all from just describing what you want in plain English.
 
 
 ## Technical Implementation
